@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  loadbalancer:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - core-service
+      - math-service
+      - user-service
+
+  core-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.core-service
+    expose:
+      - "80"
+
+  math-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.math-service
+    expose:
+      - "80"
+
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.user-service
+    expose:
+      - "80"

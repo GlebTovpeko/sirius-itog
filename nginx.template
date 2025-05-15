@@ -1,0 +1,51 @@
+server {
+    listen 80;
+    server_name localhost;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+
+    location /rpc {
+        if ($request_method != POST) {
+            return 405;
+        }
+
+        if ($http_x_client_id != "sirius-frontend") {
+            return 401;
+        }
+
+        if ($http_x_client_secret = "") {
+            return 401;
+        }
+
+        if ($http_x_rpc_method = "") {
+            return 400;
+        }
+
+        if ($content_type != "application/json") {
+            return 400;
+        }
+
+        client_max_body_size 64;
+        proxy_read_timeout 1s;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_pass http://$target_service;
+    }
+}
+
+map $http_x_rpc_method $target_service {
+    hostnames;
+
+    math.sum math-service;
+    math.sub math-service;
+    math.mult math-service;
+    math.div math-service;
+    user.* user-service;
+    default core-service;
+}
